@@ -57,6 +57,7 @@ function RiscoSecuritySystemAccessory(log, config) {
     this.riscoPIN = config["riscoPIN"];
     this.polling = config["polling"] || false;
     this.pollInterval = config["pollInterval"] || 30000;
+    this.homeCommand = config["homeCommand"] || "disarmed";
     this.armCmd = config["armCommand"] || "armed";
     this.partialCommand = config["partialCommand"] || "partially";
     this.disarmCmd = config["disarmCommand"] || "disarmed";
@@ -107,7 +108,7 @@ RiscoSecuritySystemAccessory.prototype = {
             case Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // stayArm = 0
                 riscoArm = true;
-                cmd = self.disarmCmd;
+                cmd = self.homeCommand;
                 break;
             case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
                 // stayArm = 2
@@ -158,7 +159,6 @@ RiscoSecuritySystemAccessory.prototype = {
 
     getState: function (callback) {
         var self = this;
-        self.log('getState');
         if (riscoCurrentState)
             riscoCurrentState = undefined;
 
@@ -185,7 +185,6 @@ RiscoSecuritySystemAccessory.prototype = {
 
 
     getCurrentState: function (callback) {
-
         var self = this;
 
         if (self.polling) {
@@ -220,15 +219,17 @@ RiscoSecuritySystemAccessory.prototype = {
     getRefreshState: function (callback) {
         var self = this;
         risco.refreshState().then(function (resp) {
-            //self.log('Risco state: ', resp);
-            if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
+            if (resp == 4) {
+                callback(null, resp);
+            }
+            if (resp == 0 || resp == 1 || resp == 2 || resp == 3 ) {
                 if (resp != riscoCurrentState) {
-                    //self.log('Double check received state: ', translateState(resp));
+                    // self.log('Double check received state: ', translateState(resp));
 
                     risco.login().then(function (resp) {
                         risco.getState().then(function (resp) {
                             // Worked.
-                            if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
+                            if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
                                 riscoCurrentState = resp;
                                 callback(null, resp);
                             }
