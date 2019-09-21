@@ -1,4 +1,4 @@
-"use strict";
+ "use strict";
 
 var Service, Characteristic;
 var waitUntil = require('wait-until');
@@ -72,6 +72,7 @@ function RiscoSecurityGarageSystemAccessory(log, config) {
         self.log("Starting polling with an interval of %s ms", self.pollInterval);
         var emitter = pollingtoevent(function (done) {
             self.getRefreshState(function (err, result) {
+                self.log("POLLING RESULT:", result);
                 done(err, result);
             });
         }, {
@@ -85,6 +86,7 @@ function RiscoSecurityGarageSystemAccessory(log, config) {
                 self.log("New state detected: (" + state + ") -> " + translateState(state) + ". Notify!");
                 self.securityService.setCharacteristic(Characteristic.SecuritySystemCurrentState, state);
                 riscoCurrentState = state;
+                self.log("LONGPOLLING RESULT:", state);
             }
         });
 
@@ -159,14 +161,16 @@ RiscoSecurityGarageSystemAccessory.prototype = {
 
     getState: function (callback) {
         var self = this;
-        self.log('getState');
+        self.log("app.getState:");
+        self.log("app.CurrentState:", riscoCurrentState);
         if (riscoCurrentState)
             riscoCurrentState = undefined;
 
         risco.login().then(function (resp) {
             risco.getState().then(function (resp) {
                 // Worked.
-                if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
+                self.log("resp:", resp);
+                if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
                     self.log("Actual state is: (" + resp + ") -> ", translateState(resp));
                     riscoCurrentState = resp;
                     callback(null, resp);
@@ -186,10 +190,11 @@ RiscoSecurityGarageSystemAccessory.prototype = {
 
 
     getCurrentState: function (callback) {
-
         var self = this;
+        self.log('app.getCurrentState:');
 
         if (self.polling) {
+            self.log('pollingCurrentState:', riscoCurrentState);
             callback(null, riscoCurrentState);
         } else {
             self.log('Getting current state - delayed...');
@@ -220,46 +225,41 @@ RiscoSecurityGarageSystemAccessory.prototype = {
 
     getRefreshState: function (callback) {
         var self = this;
-        risco.refreshState().then(function (resp) {
-            //self.log('Risco state: ', resp);
-            if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
-                if (resp != riscoCurrentState) {
-                    //self.log('Double check received state: ', translateState(resp));
-
-                    risco.login().then(function (resp) {
-                        risco.getState().then(function (resp) {
-                            // Worked.
-                            if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
-                                riscoCurrentState = resp;
-                                callback(null, resp);
-                            }
-
-                        }).catch(function (error) {
-                            callback("error");
-                        })
-                    });
-
-                } else {
-                    // Return last known status
-                    callback(null, riscoCurrentState)
-                }
-
-                //riscoCurrentState = resp;
-                //callback(null, resp);
-            } else {
+        risco.getCPState().then(function (resp) {
+            self.log('risco.CPstate: ', resp);
+            self.log('app.riscoCurrentState: ', riscoCurrentState);
+            if (resp == 'true') {
                 // Return last known status
+                riscoCurrentState = 4;
                 callback(null, riscoCurrentState);
+            } else {
+                risco.login().then(function (resp) {
+                    risco.getState().then(function (resp) {
+                        // Worked.
+                        if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
+                            riscoCurrentState = resp;
+                            self.log('Risco riscoCurrentState: ', riscoCurrentState);
+                            callback(null, resp);
+                        }
+
+                    }).catch(function (error) {
+                        callback("error");
+                    })
+                });
             }
 
         }).catch(function (error) {
             //self.log('Sesion expired, relogin...');
             risco.login().then(function (resp) {
-                risco.getState().then(function (resp) {
+                risco.getCPState().then(function (resp) {
                     // Worked.
-                    //self.log('GetState success', resp);
-                    if (resp == 0 || resp == 1 || resp == 2 || resp == 3 || resp == 4) {
-                        riscoCurrentState = resp;
-                        callback(null, resp);
+                    self.log('GetCPState success', resp);
+                    if (resp == 'true') {
+                        riscoCurrentState = 4;
+                        callback(null, riscoCurrentState);
+                    } else {
+                        // Return last known status
+                        callback(null, riscoCurrentState);
                     }
 
                 }).catch(function (error) {

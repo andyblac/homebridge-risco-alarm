@@ -134,7 +134,7 @@ function getState() {
                     return
                 }
 
-                self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr);
+                self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr + ' / PartArmedState: ' + body.overview.partInfo.partarmedStr);
                 var riscoState;
                 // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
@@ -142,23 +142,21 @@ function getState() {
                 // 3 -  Characteristic.SecuritySystemTargetState.DISARM:
                 //self.log(body);
 
-                if (body.OngoingAlarm == true) {
-                    riscoState = 4;
-                } else {
-                    try {
-                        var armedZones = body.overview.partInfo.armedStr.split(' ');
-                        var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
+                try {
+                    var armedZones = body.overview.partInfo.armedStr.split(' ');
+                    var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
 
-                        if (parseInt(armedZones[0]) > 0) {
-                            riscoState = 1; // Armed
-                        } else {
-                            riscoState = 3; // Disarmed
-                        }
-                    } catch (error) {
-                        self.log(error);
-                        reject();
-                        return
+                    if (parseInt(armedZones[0]) > 0) {
+                        riscoState = 1; // Armed
+                    } else if (parseInt(partArmedZones[0]) > 0) {
+                        riscoState = 2; // Partially Armed
+                    } else {
+                        riscoState = 3; // Disarmed
                     }
+                } catch (error) {
+                    self.log(error);
+                    reject();
+                    return
                 }
 
                 resolve(riscoState);
@@ -171,9 +169,9 @@ function getState() {
     })
 }
 
-function refreshState() {
-
+function getCPState() {
     return new Promise(function (resolve, reject) {
+        self.log('risco.getCPState');
         var alive_url
 
         if (req_counter == 0) {
@@ -205,6 +203,7 @@ function refreshState() {
                 // Check error inside JSON
                 try {
                     if (body.error == 3) {
+                        //self.log('Error: 3. Try to login first.');
                         reject();
                         return
                     }
@@ -214,111 +213,18 @@ function refreshState() {
                     return
                 }
 
-                var riscoState;
-                // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
-                // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
-                // 2-   Characteristic.SecuritySystemTargetState.NIGHT_ARM:
-                // 3 -  Characteristic.SecuritySystemTargetState.DISARM:
-                //self.log(body);
-
+                // self.log(body);
                 if (body.OngoingAlarm == true) {
                     self.log("RiscoCloud OngoingAlarm: " + body.OngoingAlarm );
-                    riscoState = 4;
-                    resolve(riscoState);
+                    resolve(4);
                     return
                 } else {
                     // Try different GET Method
-
-                    if (body.overview == undefined) {
-                        //self.log('No changes');
-                        resolve();
-                        return
-                    }
-
-                    self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr);
-                    try {
-                        var armedZones = body.overview.partInfo.armedStr.split(' ');
-                        var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
-
-                        if (parseInt(armedZones[0]) > 0) {
-                            riscoState = 1; // Armed
-                        } else {
-                            riscoState = 3; // Disarmed
-                        }
-
-                        resolve(riscoState);
-                        return
-
-
-                    } catch (error) {
-                        self.log('Failed during parse arm / partArmed zones', error);
-                        reject();
-                        return
-                    }
-
-                    /*
-                    var post_data = {};
-
-                    var options = {
-                        url: 'https://www.riscocloud.com/ELAS/WebUI/Overview/Get',
-                        method: 'POST',
-                        headers: {
-                            "Referer": "https://www.riscocloud.com/ELAS/WebUI/MainPage/MainPage",
-                            "Origin": "https://www.riscocloud.com",
-                            "Cookie": riscoCookies
-                        },
-                        json: post_data
-                    };
-
-                    request(options, function (err, res, body) {
-                        if (!err) {
-                            // Check error inside JSON
-                            try {
-                                if (body.error == 3) {
-                                    reject();
-                                    return
-                                }
-                            } catch (error) {
-                                self.log('Failed during GET GetCPState');
-                                reject();
-                                return
-                            }
-
-                            try {
-                                var armedZones = body.overview.partInfo.armedStr.split(' ');
-                                var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
-
-                                self.log('armedZones:', armedZones[0]);
-                                self.log('partarmedZones:', partArmedZones[0]);
-                                if (parseInt(armedZones[0]) > 0) {
-                                    riscoState = 1; // Armed
-                                } else if (parseInt(partArmedZones[0]) > 0) {
-                                    riscoState = 2; // Partially Armed
-                                } else {
-                                    riscoState = 3; // Disarmed
-                                }
-
-                                resolve(riscoState);
-                                return
-
-
-                            } catch (error) {
-                                self.log('Failed during parse arm / partArmed zones', error);
-                                reject();
-                                return
-                            }
-
-                        } else {
-                            self.log('Error during request /WebUI/Overview/Get')
-                            reject();
-                            return
-                        }
-
-
-                    });
-                    */
-
+                    self.log('Not Ongoing Alarm');
+                    resolve('Not Ongoing Alarm');
+                    return
                 }
+
             } else {
                 self.log('Error during GetCPState');
                 reject();
@@ -392,6 +298,6 @@ module.exports = {
     init,
     login,
     getState,
-    refreshState,
+    getCPState,
     arm
 };
