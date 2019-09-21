@@ -29,32 +29,29 @@ function extractError(aBody) {
 
 function login() {
     return new Promise(function (resolve, reject) {
-        //self.log('login [step1] to RiscoCloud first stage...');
+        // self.log('login [step1] to RiscoCloud first stage...');
 
-        var post_data = {
-            "username": risco_username,
-            "password": risco_password,
-            "strRedirectToEventUID": "",
-            "langId": "en"
+        var post_data = post_data = 'username=' + risco_username + '&password=' + risco_password;
+
+        var header_data = {
+            'Content-Length': post_data.length,
+            'Content-type': 'application/x-www-form-urlencoded'
         };
 
         var options = {
             url: 'https://www.riscocloud.com/ELAS/WebUI/',
             method: 'POST',
-            headers: {},
-            json: post_data
+            headers: header_data,
+            body: post_data
         };
 
         request(options, function (err, res, body) {
             try {
                 if (!err && res.statusCode == 302) {
-                    //self.log('Got Cookie, save it');
+                    // self.log('Got Cookie, save it');
                     riscoCookies = res.headers['set-cookie'];
 
-                    var post_data = {
-                        "SelectedSiteId": risco_siteId,
-                        "Pin": risco_pincode
-                    };
+                    var post_data = 'SelectedSiteId=' + risco_siteId + '&Pin='+ risco_pincode;
 
                     var options = {
                         url: 'https://www.riscocloud.com/ELAS/WebUI/SiteLogin',
@@ -63,19 +60,21 @@ function login() {
                             'Cookie': riscoCookies,
                             'Host': 'www.riscocloud.com',
                             'Origin': 'https://www.riscocloud.com',
-                            'Referer': 'https://www.riscocloud.com/ELAS/WebUI/SiteLogin/Index'
+                            'Referer': 'https://www.riscocloud.com/ELAS/WebUI/SiteLogin/Index',
+                            'Content-Length': post_data.length,
+                            'Content-type': 'application/x-www-form-urlencoded'
                         },
-                        json: post_data
+                        body: post_data
                     };
                     request(options, function (err, res, body) {
                         try {
                             if (!err && res.statusCode == 302) {
-                                //self.log('LoggedIn !');
+                                // self.log('LoggedIn !');
                                 resolve();
                                 return
                             } else {
                                 self.log('Status Code: ', res.statusCode);
-                                //self.log('login [step2] > error:', extractError(body));
+                                self.log('login [step2] > error:', extractError(body));
                                 reject('');
                                 return
                             }
@@ -135,7 +134,7 @@ function getState() {
                     return
                 }
 
-                //self.log('RiscoCloud ArmedState:' + body.overview.partInfo.armedStr + " / RiscoCloud OngoingAlarm: " + body.OngoingAlarm );
+                self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr);
                 var riscoState;
                 // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
@@ -152,8 +151,6 @@ function getState() {
 
                         if (parseInt(armedZones[0]) > 0) {
                             riscoState = 1; // Armed
-                        } else if (parseInt(partArmedZones[0]) > 0) {
-                            riscoState = 2; // Partially Armed
                         } else {
                             riscoState = 3; // Disarmed
                         }
@@ -225,7 +222,10 @@ function refreshState() {
                 //self.log(body);
 
                 if (body.OngoingAlarm == true) {
+                    self.log("RiscoCloud OngoingAlarm: " + body.OngoingAlarm );
                     riscoState = 4;
+                    resolve(riscoState);
+                    return
                 } else {
                     // Try different GET Method
 
@@ -235,16 +235,13 @@ function refreshState() {
                         return
                     }
 
+                    self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr);
                     try {
                         var armedZones = body.overview.partInfo.armedStr.split(' ');
                         var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
 
-                        //self.log('armedZones:', armedZones[0]);
-
                         if (parseInt(armedZones[0]) > 0) {
                             riscoState = 1; // Armed
-                        } else if (parseInt(partArmedZones[0]) > 0) {
-                            riscoState = 2; // Partially Armed
                         } else {
                             riscoState = 3; // Disarmed
                         }
@@ -272,7 +269,7 @@ function refreshState() {
                         },
                         json: post_data
                     };
-                    
+
                     request(options, function (err, res, body) {
                         if (!err) {
                             // Check error inside JSON
@@ -286,7 +283,7 @@ function refreshState() {
                                 reject();
                                 return
                             }
-                            
+
                             try {
                                 var armedZones = body.overview.partInfo.armedStr.split(' ');
                                 var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
@@ -316,7 +313,7 @@ function refreshState() {
                             reject();
                             return
                         }
-                       
+
 
                     });
                     */
@@ -349,21 +346,21 @@ function arm(aState, cmd) {
             targetPasscode = "------"
         }
 
-        var post_data = {
-            "type": targetType,
-            "passcode": targetPasscode,
-            "bypassZoneId": -1
+        var post_data = 'type=' + targetType + '&passcode=' + targetPasscode  + '&bypassZoneId=-1';
+
+        var header_data = {
+            "Referer": "https://www.riscocloud.com/ELAS/WebUI/MainPage/MainPage",
+            "Origin": "https://www.riscocloud.com",
+            "Cookie": riscoCookies,
+            'Content-Length': post_data.length,
+            'Content-type': 'application/x-www-form-urlencoded'
         };
 
         var options = {
             url: 'https://www.riscocloud.com/ELAS/WebUI/Security/ArmDisarm',
             method: 'POST',
-            headers: {
-                "Referer": "https://www.riscocloud.com/ELAS/WebUI/MainPage/MainPage",
-                "Origin": "https://www.riscocloud.com",
-                "Cookie": riscoCookies
-            },
-            json: post_data
+            headers: header_data,
+            body: post_data
         };
 
         request(options, function (err, res, body) {

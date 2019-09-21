@@ -11,7 +11,7 @@ var risco = require('./risco');
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-    homebridge.registerAccessory("homebridge-risco-alarm", "RiscoAlarm", RiscoSecuritySystemAccessory);
+    homebridge.registerAccessory("homebridge-risco-alarm-garage", "RiscoAlarmGarage", RiscoSecurityGarageSystemAccessory);
 }
 
 
@@ -47,7 +47,7 @@ function translateState(aState) {
     return translatedSate
 }
 
-function RiscoSecuritySystemAccessory(log, config) {
+function RiscoSecurityGarageSystemAccessory(log, config) {
 
 
     this.log = log;
@@ -57,6 +57,7 @@ function RiscoSecuritySystemAccessory(log, config) {
     this.riscoPIN = config["riscoPIN"];
     this.polling = config["polling"] || false;
     this.pollInterval = config["pollInterval"] || 30000;
+    this.homeCommand = config["homeCommand"] || "disarmed";
     this.armCmd = config["armCommand"] || "armed";
     this.partialCommand = config["partialCommand"] || "partially";
     this.disarmCmd = config["disarmCommand"] || "disarmed";
@@ -93,7 +94,7 @@ function RiscoSecuritySystemAccessory(log, config) {
     }
 }
 
-RiscoSecuritySystemAccessory.prototype = {
+RiscoSecurityGarageSystemAccessory.prototype = {
 
     setTargetState: function (state, callback) {
         var self = this;
@@ -107,7 +108,7 @@ RiscoSecuritySystemAccessory.prototype = {
             case Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // stayArm = 0
                 riscoArm = true;
-                cmd = self.disarmCmd;
+                cmd = self.homeCommand;
                 break;
             case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
                 // stayArm = 2
