@@ -237,23 +237,21 @@ RiscoSecuritySystemAccessory.prototype = {
             self.log('risco.CPstate: ', resp);
             self.log('app.riscoCurrentState: ', riscoCurrentState);
             if (resp == 'true') {
-                // Return last known status
+                // Return Alarm is Going Off
                 riscoCurrentState = 4;
                 callback(null, riscoCurrentState);
             } else {
-                risco.login().then(function (resp) {
-                    risco.getState().then(function (resp) {
-                        // Worked.
-                        if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
-                            riscoCurrentState = resp;
-                            self.log('Risco riscoCurrentState: ', riscoCurrentState);
-                            callback(null, resp);
-                        }
+                risco.getState().then(function (resp) {
+                    // Worked.
+                    if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
+                        riscoCurrentState = resp;
+                        // self.log('Risco riscoCurrentState: ', riscoCurrentState);
+                        callback(null, resp);
+                    }
 
-                    }).catch(function (error) {
-                        callback("error");
-                    })
-                });
+                }).catch(function (error) {
+                    callback("error");
+                })
             }
 
         }).catch(function (error) {
