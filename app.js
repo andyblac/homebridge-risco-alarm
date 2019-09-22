@@ -19,7 +19,6 @@ module.exports = function (homebridge) {
 var riscoCurrentState;// = 3; // Do not set default. Looks like plugin get restarted after some time. Generates false alarms.
 
 function translateState(aState) {
-
     // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
     // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
     // 2-   Characteristic.SecuritySystemTargetState.NIGHT_ARM:
@@ -134,24 +133,19 @@ RiscoSecurityGarageSystemAccessory.prototype = {
             self.securityService.setCharacteristic(Characteristic.SecuritySystemCurrentState, state);
             riscoCurrentState = state;
             callback(null, state);
-
         }).catch(function (error) {
             // Most propably user not logged in. Re-login
-
             risco.login().then(function (resp) {
                 //successful call
                 self.log('Relogin success...continue to set new Risco Status');
-
                 risco.arm(riscoArm, cmd).then(function (resp) {
                     self.securityService.setCharacteristic(Characteristic.SecuritySystemCurrentState, state);
                     riscoCurrentState = state;
                     callback(null, state);
-
                 }).catch(function (error) {
                     self.log(error)
                     callback(null, riscoCurrentState);
                 })
-
             }).catch(function (error) {
                 self.log(error);
                 callback(null, riscoCurrentState);
@@ -179,7 +173,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                             riscoCurrentState = resp;
                             callback(null, resp);
                         }
-
                     }).catch(function (error) {
                         callback("error");
                     })
@@ -216,7 +209,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                     // do stuff
                     self.log('Update current state to:', riscoCurrentState);
                     callback(null, riscoCurrentState);
-
                 });
         }
     },
@@ -248,12 +240,10 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                         // self.log('Risco riscoCurrentState: ', riscoCurrentState);
                         callback(null, resp);
                     }
-
                 }).catch(function (error) {
                     callback("error");
                 })
             }
-
         }).catch(function (error) {
             self.log('Sesion expired, relogin...');
             risco.login().then(function (resp) {
@@ -266,7 +256,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                         // Return last known status
                         callback(null, riscoCurrentState);
                     }
-
                 }).catch(function (error) {
                     self.log('Get State Failed', error);
                     callback(null, riscoCurrentState);
@@ -277,7 +266,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                 callback(null, riscoCurrentState);
                 return
             });
-
         })
     },
 
