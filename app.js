@@ -234,34 +234,31 @@ RiscoSecurityGarageSystemAccessory.prototype = {
     getRefreshState: function (callback) {
         var self = this;
         risco.getCPState().then(function (resp) {
-            self.log('risco.CPstate: ', resp);
-            self.log('app.riscoCurrentState: ', riscoCurrentState);
+            // self.log('GetCPState success', resp);
+            // self.log('GetCPState zoneCurrentState: ', riscoCurrentState);
             if (resp == 'true') {
-                // Return last known status
+                // Return Alarm is Going Off
                 riscoCurrentState = 4;
                 callback(null, riscoCurrentState);
             } else {
-                risco.login().then(function (resp) {
-                    risco.getState().then(function (resp) {
-                        // Worked.
-                        if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
-                            riscoCurrentState = resp;
-                            self.log('Risco riscoCurrentState: ', riscoCurrentState);
-                            callback(null, resp);
-                        }
+                risco.getState().then(function (resp) {
+                    // Worked.
+                    if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
+                        riscoCurrentState = resp;
+                        // self.log('Risco riscoCurrentState: ', riscoCurrentState);
+                        callback(null, resp);
+                    }
 
-                    }).catch(function (error) {
-                        callback("error");
-                    })
-                });
+                }).catch(function (error) {
+                    callback("error");
+                })
             }
 
         }).catch(function (error) {
-            //self.log('Sesion expired, relogin...');
+            self.log('Sesion expired, relogin...');
             risco.login().then(function (resp) {
                 risco.getCPState().then(function (resp) {
                     // Worked.
-                    self.log('GetCPState success', resp);
                     if (resp == 'true') {
                         riscoCurrentState = 4;
                         callback(null, riscoCurrentState);
