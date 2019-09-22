@@ -161,30 +161,38 @@ RiscoSecurityGarageSystemAccessory.prototype = {
 
     getState: function (callback) {
         var self = this;
-        self.log("app.getState:");
-        self.log("app.CurrentState:", riscoCurrentState);
-        if (riscoCurrentState)
-            riscoCurrentState = undefined;
-
         risco.login().then(function (resp) {
-            risco.getState().then(function (resp) {
+            risco.getCPState().then(function (resp) {
                 // Worked.
-                self.log("resp:", resp);
-                if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
+                // self.log('GetCPState success', resp);
+                // self.log('GetCPState zoneCurrentState: ', riscoCurrentState);
+                if (resp == 'true') {
+                    // Return Alarm is Going Off
                     self.log("Actual state is: (" + resp + ") -> ", translateState(resp));
-                    riscoCurrentState = resp;
-                    callback(null, resp);
+                    riscoCurrentState = 4;
+                    callback(null, riscoCurrentState);
+                } else {
+                    risco.getState().then(function (resp) {
+                        // Worked.
+                        if (resp == 0 || resp == 1 || resp == 2 || resp == 3) {
+                            self.log("Actual state is: (" + resp + ") -> ", translateState(resp));
+                            riscoCurrentState = resp;
+                            callback(null, resp);
+                        }
+
+                    }).catch(function (error) {
+                        callback("error");
+                    })
                 }
-
             }).catch(function (error) {
-                self.log('Error from Login');
-                self.log(error);
-                callback("error");
-            })
-
+                self.log('Get State Failed', error);
+                callback(null, riscoCurrentState);
+                return
+            });
         }).catch(function (error) {
-            self.log(error);
-            callback("error");
+            self.log('Login failed', error);
+            callback(null, riscoCurrentState);
+            return
         });
     },
 
