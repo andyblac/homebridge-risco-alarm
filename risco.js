@@ -17,23 +17,20 @@ function init(aUser, aPassword, aPIN, aSiteId, context) {
     risco_siteId = aSiteId;
     self = context;
     req_counter = 0;
-
 }
+
 
 function extractError(aBody) {
     var serverInfo_begin = aBody.indexOf("<span class=\"infoServer\">");
     var serverInfo_end = aBody.indexOf("</span>", serverInfo_begin);
     return aBody.substring(serverInfo_begin + 26, serverInfo_end - 7);
-
 }
 
 
 function login() {
     return new Promise(function (resolve, reject) {
         // self.log('login [step1] to RiscoCloud first stage...');
-
         var post_data = post_data = 'username=' + risco_username + '&password=' + risco_password;
-
         var header_data = {
             'Content-Length': post_data.length,
             'Content-type': 'application/x-www-form-urlencoded'
@@ -51,9 +48,7 @@ function login() {
                 if (!err && res.statusCode == 302) {
                     // self.log('Got Cookie, save it');
                     riscoCookies = res.headers['set-cookie'];
-
                     var post_data = 'SelectedSiteId=' + risco_siteId + '&Pin='+ risco_pincode;
-
                     var options = {
                         url: 'https://www.riscocloud.com/ELAS/WebUI/SiteLogin',
                         method: 'POST',
@@ -79,14 +74,12 @@ function login() {
                                 reject('');
                                 return
                             }
-
                         } catch (error) {
                             self.log(error);
                             reject('');
                             return
                         }
                     })
-
                 } else {
                     self.log('Status Code: ', res.statusCode);
                     self.log('login [step1] > error:', extractError(body));
@@ -106,7 +99,6 @@ function login() {
 function getState() {
     return new Promise(function (resolve, reject) {
         var post_data = {};
-
         var options = {
             url: 'https://www.riscocloud.com/ELAS/WebUI/Overview/Get',
             method: 'POST',
@@ -158,7 +150,6 @@ function getState() {
                     reject();
                     return
                 }
-
                 resolve(riscoState);
             } else {
                 self.log(err);
@@ -187,7 +178,6 @@ function getCPState() {
         }
 
         var post_data = {};
-
         var options = {
             url: alive_url,
             method: 'POST',
@@ -213,7 +203,6 @@ function getCPState() {
                     reject();
                     return
                 }
-
                 // self.log(body);
                 if (body.OngoingAlarm == true) {
                     self.log("RiscoCloud OngoingAlarm: " + body.OngoingAlarm );
@@ -225,7 +214,6 @@ function getCPState() {
                     resolve('Not Ongoing Alarm');
                     return
                 }
-
             } else {
                 self.log('Error during GetCPState');
                 reject();
@@ -233,8 +221,6 @@ function getCPState() {
         })
     })
 }
-
-
 
 
 function arm(aState, cmd) {
@@ -253,7 +239,6 @@ function arm(aState, cmd) {
         }
 
         var post_data = 'type=' + targetType + '&passcode=' + targetPasscode  + '&bypassZoneId=-1';
-
         var header_data = {
             "Referer": "https://www.riscocloud.com/ELAS/WebUI/MainPage/MainPage",
             "Origin": "https://www.riscocloud.com",
@@ -293,6 +278,7 @@ function arm(aState, cmd) {
         })
     });
 }
+
 
 module.exports = {
     init,
