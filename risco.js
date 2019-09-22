@@ -27,6 +27,7 @@ function extractError(aBody) {
 
 }
 
+
 function login() {
     return new Promise(function (resolve, reject) {
         // self.log('login [step1] to RiscoCloud first stage...');
@@ -103,7 +104,6 @@ function login() {
 
 
 function getState() {
-
     return new Promise(function (resolve, reject) {
         var post_data = {};
 
@@ -134,14 +134,14 @@ function getState() {
                     return
                 }
 
-                self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr + ' / PartArmedState: ' + body.overview.partInfo.partarmedStr);
-                var riscoState;
+                // self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr + ' / PartArmedState: ' + body.overview.partInfo.partarmedStr);
                 // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
                 // 2-   Characteristic.SecuritySystemTargetState.NIGHT_ARM:
                 // 3 -  Characteristic.SecuritySystemTargetState.DISARM:
                 //self.log(body);
 
+                var riscoState;
                 try {
                     var armedZones = body.overview.partInfo.armedStr.split(' ');
                     var partArmedZones = body.overview.partInfo.partarmedStr.split(' ');
@@ -169,9 +169,10 @@ function getState() {
     })
 }
 
+
 function getCPState() {
     return new Promise(function (resolve, reject) {
-        self.log('risco.getCPState');
+        // self.log('risco.getCPState');
         var alive_url
 
         if (req_counter == 0) {
@@ -220,7 +221,7 @@ function getCPState() {
                     return
                 } else {
                     // Try different GET Method
-                    self.log('Not Ongoing Alarm');
+                    // self.log('Not Ongoing Alarm');
                     resolve('Not Ongoing Alarm');
                     return
                 }
@@ -237,9 +238,8 @@ function getCPState() {
 
 
 function arm(aState, cmd) {
-
-    //console.log('func: arm');
     return new Promise(function (resolve, reject) {
+        //console.log('func: arm');
 
         var targetType = cmd;
         var targetPasscode;
