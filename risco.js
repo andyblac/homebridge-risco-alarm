@@ -134,7 +134,7 @@ function getState() {
                     return
                 }
 
-                self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr + ' / PartArmedState: ' + body.overview.partInfo.partarmedStr);
+                // self.log('RiscoCloud ArmedState: ' + body.overview.partInfo.armedStr + ' / PartArmedState: ' + body.overview.partInfo.partarmedStr);
                 // 0 -  Characteristic.SecuritySystemTargetState.STAY_ARM:
                 // 1 -  Characteristic.SecuritySystemTargetState.AWAY_ARM:
                 // 2-   Characteristic.SecuritySystemTargetState.NIGHT_ARM:
@@ -172,7 +172,7 @@ function getState() {
 
 function getCPState() {
     return new Promise(function (resolve, reject) {
-        self.log('risco.getCPState');
+        // self.log('risco.getCPState');
         var alive_url
 
         if (req_counter == 0) {
@@ -221,7 +221,7 @@ function getCPState() {
                     return
                 } else {
                     // Try different GET Method
-                    self.log('Not Ongoing Alarm');
+                    // self.log('Not Ongoing Alarm');
                     resolve('Not Ongoing Alarm');
                     return
                 }

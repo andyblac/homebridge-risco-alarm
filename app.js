@@ -72,7 +72,7 @@ function RiscoSecurityGarageSystemAccessory(log, config) {
         self.log("Starting polling with an interval of %s ms", self.pollInterval);
         var emitter = pollingtoevent(function (done) {
             self.getRefreshState(function (err, result) {
-                self.log("POLLING RESULT:", result);
+                // self.log("POLLING RESULT:", result);
                 done(err, result);
             });
         }, {
@@ -86,7 +86,7 @@ function RiscoSecurityGarageSystemAccessory(log, config) {
                 self.log("New state detected: (" + state + ") -> " + translateState(state) + ". Notify!");
                 self.securityService.setCharacteristic(Characteristic.SecuritySystemCurrentState, state);
                 riscoCurrentState = state;
-                self.log("LONGPOLLING RESULT:", state);
+                // self.log("LONGPOLLING RESULT:", state);
             }
         });
 
@@ -199,10 +199,10 @@ RiscoSecurityGarageSystemAccessory.prototype = {
 
     getCurrentState: function (callback) {
         var self = this;
-        self.log('app.getCurrentState:');
+        // self.log('app.getCurrentState:');
 
         if (self.polling) {
-            self.log('pollingCurrentState:', riscoCurrentState);
+            // self.log('pollingCurrentState:', riscoCurrentState);
             callback(null, riscoCurrentState);
         } else {
             self.log('Getting current state - delayed...');
