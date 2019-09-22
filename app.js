@@ -72,7 +72,7 @@ function RiscoSecuritySystemAccessory(log, config) {
         self.log("Starting polling with an interval of %s ms", self.pollInterval);
         var emitter = pollingtoevent(function (done) {
             self.getRefreshState(function (err, result) {
-                self.log("POLLING RESULT:", result);
+                // self.log("POLLING RESULT:", result);
                 done(err, result);
             });
         }, {
@@ -86,7 +86,7 @@ function RiscoSecuritySystemAccessory(log, config) {
                 self.log("New state detected: (" + state + ") -> " + translateState(state) + ". Notify!");
                 self.securityService.setCharacteristic(Characteristic.SecuritySystemCurrentState, state);
                 riscoCurrentState = state;
-                self.log("LONGPOLLING RESULT:", state);
+                // self.log("LONGPOLLING RESULT:", state);
             }
         });
 
@@ -199,10 +199,10 @@ RiscoSecuritySystemAccessory.prototype = {
 
     getCurrentState: function (callback) {
         var self = this;
-        self.log('app.getCurrentState:');
+        // self.log('app.getCurrentState:');
 
         if (self.polling) {
-            self.log('pollingCurrentState:', riscoCurrentState);
+            // self.log('pollingCurrentState:', riscoCurrentState);
             callback(null, riscoCurrentState);
         } else {
             self.log('Getting current state - delayed...');
@@ -234,8 +234,8 @@ RiscoSecuritySystemAccessory.prototype = {
     getRefreshState: function (callback) {
         var self = this;
         risco.getCPState().then(function (resp) {
-            self.log('risco.CPstate: ', resp);
-            self.log('app.riscoCurrentState: ', riscoCurrentState);
+            // self.log('GetCPState success', resp);
+            // self.log('GetCPState zoneCurrentState: ', riscoCurrentState);
             if (resp == 'true') {
                 // Return Alarm is Going Off
                 riscoCurrentState = 4;
@@ -255,11 +255,10 @@ RiscoSecuritySystemAccessory.prototype = {
             }
 
         }).catch(function (error) {
-            //self.log('Sesion expired, relogin...');
+            self.log('Sesion expired, relogin...');
             risco.login().then(function (resp) {
                 risco.getCPState().then(function (resp) {
                     // Worked.
-                    self.log('GetCPState success', resp);
                     if (resp == 'true') {
                         riscoCurrentState = 4;
                         callback(null, riscoCurrentState);
