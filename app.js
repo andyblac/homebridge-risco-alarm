@@ -176,7 +176,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
             }).catch(function (error) {
                 // self.log('Get CPState Failed', error);
                 callback(null, riscoCurrentState);
-                return
             });
         }).catch(function (error) {
             self.log('Login failed', error);
@@ -250,7 +249,6 @@ RiscoSecurityGarageSystemAccessory.prototype = {
                 }).catch(function (error) {
                     // self.log('Get CPState Failed', error);
                     callback(null, riscoCurrentState);
-                    return
                 });
             }).catch(function (error) {
                 self.log('Login failed', error);
